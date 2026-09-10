@@ -21,7 +21,14 @@ export default function TestPage() {
 
   if (progress.submitted) return <ThankYou name={progress.info?.name} />;
   if (!progress.info) return <InfoForm onSubmit={setInfo} />;
-  if (!questions) return <div className="min-h-screen flex items-center justify-center text-muted">Loading test...</div>;
+  if (!questions) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-bg text-muted font-mono text-sm">
+        <div className="w-8 h-8 border-2 border-red border-t-transparent rounded-full animate-spin mb-4" />
+        Loading assessment...
+      </div>
+    );
+  }
 
   const allQuestions = [
     ...questions.mcq.map((q) => ({ ...q, type: "mcq" })),
@@ -61,13 +68,19 @@ export default function TestPage() {
   };
 
   return (
-    <div className="min-h-screen bg-bg flex flex-col">
+    <div className="min-h-screen bg-bg flex flex-col justify-between">
       <ProgressBar current={step + 1} total={total} />
-      <div className="flex-1 flex items-center justify-center px-6">
-        <div className="w-full max-w-lg py-10">
-          <p className="font-mono text-xs text-muted mb-8">
-            Q{String(step + 1).padStart(2, "0")} / {total}
-          </p>
+      
+      <main className="flex-1 flex items-center justify-center px-4 py-8">
+        <div className="w-full max-w-xl bg-surface/30 border border-line/40 rounded-2xl p-6 sm:p-8 shadow-sm">
+          <div className="flex items-center justify-between mb-6 pb-4 border-b border-line/40">
+            <span className="font-mono text-xs font-semibold uppercase tracking-wider text-red">
+              Question {String(step + 1).padStart(2, "0")} / {total}
+            </span>
+            <span className="text-xs font-mono text-muted capitalize bg-bg px-2.5 py-1 rounded-md border border-line/50">
+              Type: {current.type}
+            </span>
+          </div>
 
           {current.type === "mcq" && (
             <QuestionMCQ question={current} selected={currentValue} onSelect={handleAnswer} />
@@ -79,17 +92,28 @@ export default function TestPage() {
             <QuestionDefinition question={current} value={currentValue} onChange={handleAnswer} />
           )}
 
-          {error && <p className="text-red text-sm mt-4">{error}</p>}
+          {error && <p className="text-red text-xs font-medium mt-4 bg-red/10 p-3 rounded-lg border border-red/20">{error}</p>}
 
-          <button
-            onClick={handleNext}
-            disabled={!currentValue || submitting}
-            className="mt-8 bg-red hover:bg-red-dark disabled:bg-line disabled:text-muted text-white font-medium px-6 py-3 transition-colors"
-          >
-            {submitting ? "Submitting..." : step < total - 1 ? "Next" : "Submit test"}
-          </button>
+          <div className="flex items-center justify-between gap-4 mt-8 pt-6 border-t border-line/40">
+            <button
+              type="button"
+              onClick={() => setStep((prev) => Math.max(0, prev - 1))}
+              disabled={step === 0 || submitting}
+              className="px-5 py-2.5 rounded-xl border border-line/60 text-xs font-semibold text-muted hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Previous
+            </button>
+
+            <button
+              onClick={handleNext}
+              disabled={!currentValue || submitting}
+              className="bg-red hover:bg-red-dark disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-sm px-6 py-2.5 rounded-xl transition-all shadow-md shadow-red/20 active:scale-[0.98]"
+            >
+              {submitting ? "Submitting..." : step < total - 1 ? "Next Question" : "Submit Assessment"}
+            </button>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
